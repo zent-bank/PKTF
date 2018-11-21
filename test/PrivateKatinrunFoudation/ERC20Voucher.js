@@ -1,23 +1,19 @@
 const PrivateKatinrunFoudation = artifacts.require("./PrivateKatinrunFoudation.sol")
-const BigNumber = require('bignumber.js');
 
 
 contract("PrivateKatinrunFoudation", accounts => {
   let instance
   let owner
   let user1
-  let user2
-  let expectedTotalSupply = BigNumber('0')
-  let expectedTokenHolders = BigNumber('0')
+  const hexFunc = web3.utils.sha3
 
   before('Init', async () => {
     instance = await PrivateKatinrunFoudation.deployed()
     owner = accounts[0]
     user1 = accounts[1]
-    user2 = accounts[2]
   })
 
-  function signByOwner(
+  function sign(
     owner,
     expire,
     runnigNumber,
@@ -27,21 +23,19 @@ contract("PrivateKatinrunFoudation", accounts => {
     socialHash,
 ) {  
     const message = `Running: ${runnigNumber} Amount: ${amount} PKTF for ${receiver} Expired: ${expire} Parity: ${parity} Social: ${socialHash}`;
-    const messageHex = message.toString('hex');
-    console.log('message', message);
-    console.log('messageHex', messageHex);
+    const messageHex = hexFunc(message);
+
     const signatureObject = owner.sign(messageHex);
     return signatureObject;
   }
   
-  function getOwner(privateKey) {
+  function getWallet(privateKey) {
     const owner = web3.eth.accounts.privateKeyToAccount(privateKey);
-    // console.log('owner', owner);
     return owner;
   }
 
-  describe('voucher', async () => {
-    it("can redeem voucher", async () => {
+  describe('Voucher', async () => {
+    it("Can redeem voucher if signed by owner", async () => {
       const privateKey = '0xad4aeafa53adfebde0eae2ecfd145a9e3a3e7ac49dce8b366b5bef82aca63861';
       const voucher = {
         expire: '123456789',
@@ -52,8 +46,8 @@ contract("PrivateKatinrunFoudation", accounts => {
         socialHash: '0x12',
       }
 
-      const signature = signByOwner(
-        getOwner(privateKey), // owner wallet
+      const signature = sign(
+        getWallet(privateKey), // owner wallet
         voucher.expire,
         voucher.runnigNumber,
         voucher.amount,
@@ -61,26 +55,72 @@ contract("PrivateKatinrunFoudation", accounts => {
         voucher.receiver,
         voucher.socialHash,
       );
+      
+      let err = null
 
       try{
         const txHash = await instance.redeemVoucher(
-          signature._v, 
-          signature._r, 
-          signature._s, 
+          signature.v, 
+          signature.r, 
+          signature.s, 
           voucher.expire,
           voucher.runnigNumber,
           voucher.amount,
           voucher.parity,
           voucher.receiver,
           voucher.socialHash,
-        ).send({
+        {
           from: owner,
-          value: 0,
-        })
-        assert.ok(txHash, `this voucher can redeem`)
+        });
+        console.log('txHash', txHash);
       } catch (error) {
-        assert(false, error)
-      }      
+        console.log('error', error)
+        err = error
+      }
+      assert.ok(err instanceof Error)
     })
+
+    // it("Cannot redeem voucher if signed by other", async () => {
+    //   const privateKey = '0x13fa9ad5f345292e608f0624be04da00b016b84104a83c638bfc6e4c9cf46d66';
+    //   const voucher = {
+    //     expire: '123456789',
+    //     runnigNumber: '1',
+    //     amount: '1000',
+    //     parity: '1234',
+    //     receiver: user1,
+    //     socialHash: '0x12',
+    //   }
+
+    //   const signature = sign(
+    //     getWallet(privateKey), // owner wallet
+    //     voucher.expire,
+    //     voucher.runnigNumber,
+    //     voucher.amount,
+    //     voucher.parity,
+    //     voucher.receiver,
+    //     voucher.socialHash,
+    //   );
+
+    //   try{
+    //     const txHash = await instance.redeemVoucher(
+    //       signature._v, 
+    //       signature._r, 
+    //       signature._s, 
+    //       voucher.expire,
+    //       voucher.runnigNumber,
+    //       voucher.amount,
+    //       voucher.parity,
+    //       voucher.receiver,
+    //       voucher.socialHash,
+    //     ).send({
+    //       from: owner
+    //     });
+    //     console.log('success')
+    //   } catch (error) {
+    //     console.log('fail')
+    //     return;
+    //   }
+    //   assert(false);
+    // })
   })
 })

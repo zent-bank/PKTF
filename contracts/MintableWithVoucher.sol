@@ -47,8 +47,8 @@ contract MintableWithVoucher is PrivateToken {
         bytes32 socialHash
     )  
         public 
-        isNotFreezed
-        voucherIsNotExpired(expire)
+        // isNotFreezed
+        // voucherIsNotExpired(expire)
         isVoucherUnUsed(runnigNumber) {
         
         bytes32 hash = keccak256(
@@ -70,17 +70,17 @@ contract MintableWithVoucher is PrivateToken {
             
         require(ecrecover(hash, _v, _r, _s) == owner());
 
-        // Mint
-        _mint(receiver, amount);
+        // // Mint
+        // _mint(receiver, amount);
 
-        // Record new holder
-        _recordNewTokenHolder(receiver);
+        // // Record new holder
+        // _recordNewTokenHolder(receiver);
 
-        markVoucherAsUsed(runnigNumber);
+        // markVoucherAsUsed(runnigNumber);
 
-        holderRedemptionCount[socialHash]++;
+        // holderRedemptionCount[socialHash]++;
 
-        emit VoucherUsed(expire, runnigNumber, amount,  expire, parity, receiver, socialHash);
+        // emit VoucherUsed(expire, runnigNumber, amount,  expire, parity, receiver, socialHash);
     }
 
     // modifier mustSignByOwner(bytes32 hash, uint8 _v, bytes32 _r, bytes32 _s) {
