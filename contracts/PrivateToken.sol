@@ -101,8 +101,9 @@ contract PrivateToken is PartialERC20, Ownable {
         public 
         isNotFreezed
         returns (bool) {
-         // _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
-        // _transfer(from, to, value);
+            
+        _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
+        _transfer(from, to, value);
         
         // Record new holder
         _recordNewTokenHolder(to);
