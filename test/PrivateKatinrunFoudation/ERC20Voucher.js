@@ -10,6 +10,7 @@ contract("PrivateKatinrunFoudation", accounts => {
   before('Init', async () => {
     instance = await PrivateKatinrunFoudation.deployed()
     owner = accounts[0]
+    console.log('owner', owner);
     user1 = accounts[1]
   })
 
@@ -22,8 +23,12 @@ contract("PrivateKatinrunFoudation", accounts => {
     receiver,
     socialHash,
 ) {  
-    const message = `Running: ${runnigNumber} Amount: ${amount} PKTF for ${receiver} Expired: ${expire} Parity: ${parity} Social: ${socialHash}`;
+    // const message = `Running: ${runnigNumber} Amount: ${amount} PKTF for ${receiver} Expired: ${expire} Parity: ${parity} Social: ${socialHash}`;
+    const message = `${runnigNumber}${amount}${receiver}${expire}${parity}${socialHash}`;
     const messageHex = hexFunc(message);
+
+    console.log('message', message);
+    console.log('messageHex', messageHex);
 
     const signatureObject = owner.sign(messageHex);
     return signatureObject;
@@ -45,7 +50,7 @@ contract("PrivateKatinrunFoudation", accounts => {
         receiver: user1,
         socialHash: '0x12',
       }
-
+      console.log('voucher', voucher);
       const signature = sign(
         getWallet(privateKey), // owner wallet
         voucher.expire,
@@ -57,7 +62,7 @@ contract("PrivateKatinrunFoudation", accounts => {
       );
       
       let err = null
-
+      console.log('signature', signature);
       try{
         const txHash = await instance.redeemVoucher(
           signature.v, 
