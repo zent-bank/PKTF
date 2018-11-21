@@ -102,7 +102,7 @@ contract("PrivateKatinrunFoudation", accounts => {
             // apply freeze
             await instance.freeze({from: owner})
 
-            // verify transfer
+            // verify transferFrom
             try {
                 await instance.transferFrom(user1, user2, web3.utils.toWei('24552', "ether"));
             }catch (err) {
@@ -119,7 +119,7 @@ contract("PrivateKatinrunFoudation", accounts => {
             // apply freeze
             await instance.freeze({from: owner})
 
-            // verify transfer
+            // verify burn
             try {
                 await instance.burn(web3.utils.toWei('22345', "ether"), {from: owner});
             }catch (err) {
@@ -136,7 +136,7 @@ contract("PrivateKatinrunFoudation", accounts => {
             // apply freeze
             // await instance.freeze({from: owner})
 
-            // verify transfer
+            // verify burn target account
             try {
                 await instance.burn(user1, web3.utils.toWei('22222', "ether"), {from: owner});
             }catch (err) {
