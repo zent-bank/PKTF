@@ -42,27 +42,29 @@ contract MintableWithVoucher is PrivateToken {
         uint256 expire, 
         uint256 runnigNumber,
         uint256 amount, 
-        uint256 expired,
         uint256 parity,
         address receiver,
         bytes32 socialHash
     )  
         public 
         isNotFreezed
-        voucherIsNotExpired(expired)
+        voucherIsNotExpired(expire)
         isVoucherUnUsed(runnigNumber) {
         
         bytes32 hash = keccak256(
             abi.encodePacked(
-                "running:", 
+                "Running: ", 
                 runnigNumber,
-                " Coupon for ",
+                " Amount: ",
                 amount,
-                " KTF expired ",
-                expired
-                ,
-                " ",
-                parity
+                " PKTF For ",
+                receiver,
+                " Expire: ",
+                expire,
+                " Parity: ",
+                parity,
+                " Social: ",
+                socialHash
             )
         );
             
@@ -78,7 +80,7 @@ contract MintableWithVoucher is PrivateToken {
 
         holderRedemptionCount[socialHash]++;
 
-        emit VoucherUsed(expire, runnigNumber, amount,  expired, parity, receiver, socialHash);
+        emit VoucherUsed(expire, runnigNumber, amount,  expire, parity, receiver, socialHash);
     }
 
     // modifier mustSignByOwner(bytes32 hash, uint8 _v, bytes32 _r, bytes32 _s) {
