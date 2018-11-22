@@ -1,10 +1,12 @@
 pragma solidity ^0.4.23;  
 
 import "./PrivateToken.sol";
+import "./strings.sol";
 
 contract MintableWithVoucher is PrivateToken {
     mapping(uint256 => bool) usedVouchers;
     mapping(bytes32 => uint32) holderRedemptionCount;
+    using strings for *;
     
     event VoucherUsed(
         uint256 expire, 
@@ -39,30 +41,30 @@ contract MintableWithVoucher is PrivateToken {
         uint8 _v, 
         bytes32 _r, 
         bytes32 _s, 
-        string expire, 
         string runnigNumber,
         string amount, 
-        string parity,
+        string expire,
         string receiver,
+        string parity,
         string socialHash
     )  
-        public 
+        public
         // isNotFreezed
         // voucherIsNotExpired(expire)
         // isVoucherUnUsed(runnigNumber) 
         {
-        string memory longStr = concatStr(
-            expire, 
+        string memory str = concatStr(
             runnigNumber,
             amount, 
-            parity,
             receiver,
+            expire, 
+            parity,
             socialHash
         );
+
+        bytes32 hash = keccak256(str);
         
-        bytes32 hash = keccak256(longStr);
-            
-        require(ecrecover(hash, _v, _r, _s) == owner());
+        require(getOriginAddress(hash, _v, _r, _s) == owner(), "message must sign by owner");
 
         // // Mint
         // _mint(receiver, amount);
@@ -76,45 +78,59 @@ contract MintableWithVoucher is PrivateToken {
 
         // emit VoucherUsed(expire, runnigNumber, amount,  expire, parity, receiver, socialHash);
     }
-
-    function strConcat(string _a, string _b, string _c, string _d, string _e) internal returns (string){
-        bytes memory _ba = bytes(_a);
-        bytes memory _bb = bytes(_b);
-        bytes memory _bc = bytes(_c);
-        bytes memory _bd = bytes(_d);
-        bytes memory _be = bytes(_e);
-        string memory abcde = new string(_ba.length + _bb.length + _bc.length + _bd.length + _be.length);
-        bytes memory babcde = bytes(abcde);
-        uint k = 0;
-        for (uint i = 0; i < _ba.length; i++) babcde[k++] = _ba[i];
-        for (i = 0; i < _bb.length; i++) babcde[k++] = _bb[i];
-        for (i = 0; i < _bc.length; i++) babcde[k++] = _bc[i];
-        for (i = 0; i < _bd.length; i++) babcde[k++] = _bd[i];
-        for (i = 0; i < _be.length; i++) babcde[k++] = _be[i];
-        return string(babcde);
-    }
     
+    function getOriginAddress(
+        bytes32 signedMessage, 
+        uint8 v, 
+        bytes32 r, 
+        bytes32 s
+    ) internal returns(address) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(prefix, signedMessage);
+        return ecrecover(prefixedHash, v, r, s);
+    }
+        
     function concatStr(
-        string expire, 
         string runnigNumber,
         string amount, 
-        string parity,
         string receiver,
+        string expire, 
+        string parity,
         string socialHash
-    ) internal view returns (string) {
-        return strConcat(runnigNumber, amount, receiver, expire, strConcat(parity, socialHash, "", "", ""));
-        // 110000x2ac8c9810A4f4570aAbfEE01a074DB75807335F012345678912340x12
-        // 110000x0b88850c7F0509531C56DCA1f50882151fB40DB112345678912340x12
+    ) public view returns (string) {
+        string memory s1 = runnigNumber.toSlice().concat(amount.toSlice());
+        string memory s2 = receiver.toSlice().concat(expire.toSlice());
+        string memory s3 = parity.toSlice().concat(socialHash.toSlice());
+        string memory s4 = s1.toSlice().concat(s2.toSlice());
+        string memory s5 = s4.toSlice().concat(s3.toSlice());
+
+        return s5;
     }
     
-    function ecRecover(bytes32 _hash, uint8 _v, bytes32 _r, bytes32 _s) public view returns(bool) {
-        return (ecrecover(_hash, _v, _r, _s) == owner());
-    }
+    // function ecRecover(bytes32 _hash, uint8 _v, bytes32 _r, bytes32 _s) public view returns(bool) {
+    //     return (ecrecover(_hash, _v, _r, _s) == owner());
+    // }
     
-    function getHash(string paintext) public view returns (bytes32) {
-        // string memory hash = 'Running: 1 Amount: 1000 PKTF for 0x2ac8c9810A4f4570aAbfEE01a074DB75807335F0 Expired: 123456789 Parity: 1234 Social: 0x12';
-        return keccak256(paintext);
-    }
+    // function getHash(string paintext) public view returns (bytes32) {
+    //     return keccak256(paintext);
+    // }
+    
+    // function getContatString(
+    //         string runnigNumber,
+    //         string amount, 
+    //         string receiver,
+    //         string expire, 
+    //         string parity,
+    //         string socialHash) public view returns (string) {
+    //     return concatStr(
+    //         runnigNumber,
+    //         amount, 
+    //         receiver,
+    //         expire, 
+    //         parity,
+    //         socialHash
+    //     );
+    // }
     
     /**
         * @dev Function to mint tokens
